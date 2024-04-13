@@ -1,6 +1,16 @@
 import openmm as mm
 from openmm import app, unit
 import numpy as np
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+MLP_WEIGHTPATH = os.getenv('MLP_WEIGHTPATH')
+PES_WEIGHTPATH = os.getenv('PES_WEIGHTPATH')
+DATAPATH = os.getenv('DATAPATH')
+
+
+
 
 def create_water_topology():
     # Initialize the topology
@@ -61,7 +71,7 @@ def calculate_potential_energy_and_forces(simulation, configuration):
 # Main execution
 if __name__ == '__main__':
     num_atoms = 3  # For a water molecule (H2O)
-    num_configs = 5000  # Number of configurations
+    num_configs = 40000  # Number of configurations
     configurations = generate_configurations(num_atoms, num_configs)
     
     # Create the topology and set up the simulation
@@ -81,6 +91,6 @@ if __name__ == '__main__':
     
 
     # Save configurations and potential energies to an NPZ file
-    np.savez(r'dataset\water_configurations_and_potentials.npz', configurations=configurations, potentials=potential_energies, forces=forces)
+    np.savez(DATAPATH, configurations=configurations, potentials=potential_energies, forces=forces)
 
-    print("Data has been saved to "+ r'dataset\water_configurations_and_potentials.npz')
+    print("Data has been saved to "+ DATAPATH)
