@@ -1,0 +1,9 @@
+HEADER 
+TITLE     Built with Packmol                                             
+REMARK   Packmol generated pdb file 
+REMARK   Home-Page: http://www.ime.unicamp.br/~martinez/packmol
+REMARK
+HETATM    1  H   HOH A   1       0.047   4.205   4.784                          
+HETATM    2  H   HOH A   1       0.903   4.913   3.703                          
+HETATM    3  O   HOH A   1       0.600   5.000   4.631                          
+END

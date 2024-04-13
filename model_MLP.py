@@ -75,8 +75,9 @@ def custom_loss(output_energies, target_energies, input_coordinates, target_forc
     input_coordinates.retain_grad()
     energy_loss = nn.functional.mse_loss(output_energies, target_energies)
 
-    output_energies.sum().backward(retain_graph=True)
-    predicted_forces = -input_coordinates.grad
+    #output_energies.sum().backward(retain_graph=True)
+    predicted_forces = -torch.autograd.grad(output_energies.sum(), input_coordinates, create_graph=True)[0]
+    #predicted_forces = -input_coordinates.grad
     
     # Calculate MSE for the forces
     force_loss = nn.functional.mse_loss(predicted_forces, target_forces)
@@ -108,6 +109,7 @@ def train(model, optimizer, train_loader, val_loader, epochs, device, eta_potent
             # Validation phase
             model.eval()
             val_loss = 0
+            val_batches = 0
             for batch_X, batch_y, batch_f in val_loader:
                 batch_X.requires_grad = True
                 batch_X, batch_y, batch_f = batch_X.to(device), batch_y.to(device), batch_f.to(device)
@@ -115,13 +117,14 @@ def train(model, optimizer, train_loader, val_loader, epochs, device, eta_potent
                 output = model(batch_X)
                 loss = custom_loss(output, batch_y, batch_X, batch_f, eta_potential, eta_force)
                 val_loss += loss.item()
-
+                val_batches += 1
+            average_val_loss = val_loss / val_batches
             # Save the model if it's the best so far
-            if val_loss < best_loss:
-                best_loss = val_loss
+            if average_val_loss < best_loss:
+                best_loss = average_val_loss
                 torch.save(model.state_dict(), MLP_WEIGHTPATH)  # Save best model state
 
-            print(f'Epoch {epoch+1}, Training Loss: {loss.item()}, Validation Loss: {val_loss}')
+            print(f'Epoch {epoch+1}, Training Loss: {loss.item()}, Validation Loss: {average_val_loss}')
 
     except KeyboardInterrupt:
         print("Training stopped manually via keyboard interrupt. Saving current model state...")
@@ -131,11 +134,11 @@ def train(model, optimizer, train_loader, val_loader, epochs, device, eta_potent
 # Main script
 def MLP_main():
     num_atom=3
-    epochs = 100
-    batch_size = 256
-    eta_potential = 1
-    eta_force = 0
-    lr = 0.015
+    epochs = 1000
+    batch_size = 512
+    eta_potential = 0
+    eta_force = 1
+    lr = 0.00008
     load = input("Do you want to load the weights? (y/n): ")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f'Using device: {device}')
