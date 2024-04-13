@@ -83,7 +83,7 @@ def train(model, optimizer, train_loader, val_loader, epochs, device, eta_potent
                 batch_X, batch_y, batch_f = batch_X.to(device), batch_y.to(device), batch_f.to(device)
                 batch_X.retain_grad()
                 optimizer.zero_grad()
-                species = torch.tensor([[8, 1, 1]], device=device).repeat(batch_X.size(0), 1)
+                species = torch.tensor([[8, 1, 1,8,1,1]], device=device).repeat(batch_X.size(0), 1)
                 output = model((species,batch_X)).energies
                 output = output.reshape(-1,1)
                 loss = custom_loss(output, batch_y, batch_X, batch_f, eta_potential, eta_force)
@@ -98,7 +98,7 @@ def train(model, optimizer, train_loader, val_loader, epochs, device, eta_potent
                 batch_X.requires_grad = True
                 batch_X, batch_y, batch_f = batch_X.to(device), batch_y.to(device), batch_f.to(device)
                 batch_X.retain_grad()
-                species = torch.tensor([[8, 1, 1]], device=device).repeat(batch_X.size(0), 1)
+                species = torch.tensor([[8, 1, 1,8,1,1]], device=device).repeat(batch_X.size(0), 1)
                 output = model((species,batch_X)).energies
                 output = output.reshape(-1,1)
                 loss = custom_loss(output, batch_y, batch_X, batch_f, eta_potential, eta_force)
@@ -122,9 +122,9 @@ def train(model, optimizer, train_loader, val_loader, epochs, device, eta_potent
 def ANI_main():
     epochs = 1000
     batch_size = 512
-    eta_potential = 1
-    eta_force = 0.5
-    lr = 0.0008
+    eta_potential = 0.4
+    eta_force = 1
+    lr = 0.00008
     load = input("Do you want to load the weights? (y/n): ")
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f'Using device: {device}')
@@ -140,8 +140,6 @@ def ANI_main():
 
     # Train the model
     train(model, optimizer, train_loader, val_loader, epochs, device, eta_potential, eta_force)
-
-    # Optionally evaluate on test set after training
     # Save the model weights
     torch.save(model.state_dict(), ANI_WEIGHTPATH)
 

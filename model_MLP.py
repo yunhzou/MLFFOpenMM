@@ -133,7 +133,7 @@ def train(model, optimizer, train_loader, val_loader, epochs, device, eta_potent
 
 # Main script
 def MLP_main():
-    num_atom=3
+    num_atom=6
     epochs = 1000
     batch_size = 512
     eta_potential = 0

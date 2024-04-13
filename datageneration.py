@@ -22,14 +22,14 @@ def create_water_topology():
     atom0 = topology.addAtom("O", element_O, residue)
     atom1 = topology.addAtom("H", element_H, residue)
     atom2 = topology.addAtom("H", element_H, residue)
-    # residue_1 = topology.addResidue("water1", chain)
-    # atom3 = topology.addAtom("O", element_O, residue_1)
-    # atom4 = topology.addAtom("H", element_H, residue_1)
-    # atom5 = topology.addAtom("H", element_H, residue_1)
+    residue_1 = topology.addResidue("water1", chain)
+    atom3 = topology.addAtom("O", element_O, residue_1)
+    atom4 = topology.addAtom("H", element_H, residue_1)
+    atom5 = topology.addAtom("H", element_H, residue_1)
     topology.addBond(atom0, atom1)
     topology.addBond(atom0, atom2)
-    # topology.addBond(atom3, atom4)
-    # topology.addBond(atom3, atom5)
+    topology.addBond(atom3, atom4)
+    topology.addBond(atom3, atom5)
     return topology
 
 def setup_simulation(topology):
@@ -46,23 +46,23 @@ def setup_simulation(topology):
     simulation = app.Simulation(topology, system, integrator)
     return simulation
 
-def generate_configuration(num_atoms):
-    # Generate random configurations within a 2x2x2 Å box centered at the origin
-    return np.random.rand(num_atoms, 3) * 2 - 1
+# def generate_configuration(num_atoms):
+#     # Generate random configurations within a 2x2x2 Å box centered at the origin
+#     return np.random.rand(num_atoms, 3) * 2 - 1
 
-def generate_configurations(num_atoms, num_configs):
-    """
-    Generates random 3D configurations for a specified number of atoms across multiple configurations.
+# def generate_configurations(num_atoms, num_configs):
+#     """
+#     Generates random 3D configurations for a specified number of atoms across multiple configurations.
     
-    Args:
-    num_atoms (int): Number of atoms per configuration.
-    num_configs (int): Number of configurations to generate.
+#     Args:
+#     num_atoms (int): Number of atoms per configuration.
+#     num_configs (int): Number of configurations to generate.
 
-    Returns:
-    np.ndarray: Array of shape (num_configs, num_atoms, 3) containing the configurations.
-    """
-    # Each dimension will have coordinates in the range [-1, 1) multiplied by the box size, centered at the origin
-    return np.random.rand(num_configs, num_atoms, 3) * 2 - 1
+#     Returns:
+#     np.ndarray: Array of shape (num_configs, num_atoms, 3) containing the configurations.
+#     """
+#     # Each dimension will have coordinates in the range [-1, 1) multiplied by the box size, centered at the origin
+#     return np.random.rand(num_configs, num_atoms, 3) * 10 - 5
 
 def calculate_potential_energy_and_forces(simulation, configuration):
     # Set the positions of the atoms in the simulation
@@ -74,11 +74,47 @@ def calculate_potential_energy_and_forces(simulation, configuration):
     forces = state.getForces(asNumpy=True)
     return pe, forces
 
+import numpy as np
+from scipy.spatial.transform import Rotation as R
+
+def generate_molecule():
+    """Generates a single water molecule with random variations in bond lengths."""
+    # Oxygen at origin, hydrogens in the xz-plane
+    O = np.array([0.0, 0.0, 0.0])
+    theta = np.deg2rad(104.5) / 2  # Half the bond angle
+    
+    # Random bond length between 0.4572 and 1.4572 Å (base length 0.9572 ± 0.5 Å)
+    r = 0.9572 + np.random.uniform(-0.5, 0.5)
+    
+    H1 = np.array([r * np.cos(theta), 0.0, r * np.sin(theta)])
+    H2 = np.array([r * np.cos(theta), 0.0, -r * np.sin(theta)])
+    return np.array([O, H1, H2])
+
+def generate_water_dimer():
+    """Generates a configuration for a water dimer."""
+    molecule1 = generate_molecule()
+    molecule2 = generate_molecule()
+    
+    # Random rotation and translation of the second molecule
+    rotation = R.random().as_matrix()
+    molecule2 = molecule2 @ rotation  # Apply rotation
+    
+    # Set a reasonable range for the intermolecular O-O distance
+    translation = np.array([np.random.uniform(2.5, 3.5), np.random.uniform(-1, 1), np.random.uniform(-1, 1)])
+    molecule2 += translation
+    
+    return np.vstack((molecule1, molecule2))
+
+def generate_configurations(num_configs):
+    """Generate multiple dimer configurations with variable bond lengths."""
+    return np.array([generate_water_dimer() for _ in range(num_configs)])
+
+
 # Main execution
 if __name__ == '__main__':
-    num_atoms = 3  # For a water molecule (H2O)
+    num_atoms = 6  # For a water molecule (H2O)
     num_configs = 40000  # Number of configurations
-    configurations = generate_configurations(num_atoms, num_configs)
+    configurations = generate_configurations(num_configs)
     
     # Create the topology and set up the simulation
     topology = create_water_topology()
