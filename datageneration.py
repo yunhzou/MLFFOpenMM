@@ -11,7 +11,7 @@ DATAPATH = os.getenv('DATAPATH')
 
 
 
-
+#need to be manually change
 def create_water_topology():
     # Initialize the topology
     topology = app.Topology()
@@ -22,8 +22,14 @@ def create_water_topology():
     atom0 = topology.addAtom("O", element_O, residue)
     atom1 = topology.addAtom("H", element_H, residue)
     atom2 = topology.addAtom("H", element_H, residue)
+    # residue_1 = topology.addResidue("water1", chain)
+    # atom3 = topology.addAtom("O", element_O, residue_1)
+    # atom4 = topology.addAtom("H", element_H, residue_1)
+    # atom5 = topology.addAtom("H", element_H, residue_1)
     topology.addBond(atom0, atom1)
     topology.addBond(atom0, atom2)
+    # topology.addBond(atom3, atom4)
+    # topology.addBond(atom3, atom5)
     return topology
 
 def setup_simulation(topology):
@@ -86,9 +92,7 @@ if __name__ == '__main__':
     for i, config in enumerate(configurations):
         potential_energy, force = calculate_potential_energy_and_forces(simulation, config)
         potential_energies[i] = potential_energy.value_in_unit(unit.kilojoules_per_mole)
-        forces[i] = force.value_in_unit(unit.kilojoules_per_mole/unit.nanometer)
-
-    
+        forces[i] = force.value_in_unit(unit.kilojoules_per_mole/unit.angstroms)
 
     # Save configurations and potential energies to an NPZ file
     np.savez(DATAPATH, configurations=configurations, potentials=potential_energies, forces=forces)
