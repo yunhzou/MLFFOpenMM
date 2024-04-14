@@ -19,12 +19,12 @@ elif model_name == 'ani':
     weight_path = r"weight\ani_model_weights.pth"
 data_loader,val_loader,test_loader = load_data(batch_size)
 if model_name == 'mlp':
-    model = MLP(6).to(device)
+    model = MLP(3).to(device)
     model.load_state_dict(torch.load(weight_path))
 elif model_name == 'ani':
     model = torchani.models.ANI1x(periodic_table_index=True).to(device).double()
     model.load_state_dict(torch.load(weight_path))
-    species = torch.tensor([[8, 1, 1,8,1,1]], device=device).repeat(batch_size, 1) 
+    species = torch.tensor([[8, 1,1]], device=device).repeat(batch_size, 1) 
 # Predict the potential energies
 model.eval()
 for i,(batch_X, batch_y, batch_f) in enumerate(test_loader):
@@ -67,8 +67,8 @@ def plot_results(X, y_true, y_pred):
     plt.figure(figsize=(8, 8))
     plt.scatter(y_true, y_pred, alpha=0.5)
     plt.plot(y_true, lr.predict(y_true), color='red', label=f'R^2 Score: {r2}')
-    plt.xlabel('True Potential Energy eV')
-    plt.ylabel('Predicted Potential Energy eV')
+    plt.xlabel('True Potential Energy KJ/mol')
+    plt.ylabel('Predicted Potential Energy KJ/mol')
     plt.legend()
     #save
     plt.savefig('potential.png')
@@ -77,10 +77,13 @@ def plot_results(X, y_true, y_pred):
 plot_results(1,energies_true, energies_pred)
 force_total_pred = force_total_pred.detach().cpu().numpy()
 force_total_true = test_loader.dataset.tensors[2].detach().cpu().numpy()
-
+r2_score_list = []
 plt.figure(figsize=(8, 8))
-for i in range(6):
+for i in range(3):
+    r2_score_list.append(r2_score(force_total_true[:, i], force_total_pred[:, i]))
     plt.scatter(force_total_pred[:, i], force_total_true[:, i], alpha=0.5, label=f'Atom {i+1}')
+r2_score_m = np.mean(r2_score_list)
+plt.title(f'R^2 Score: {r2_score_m}, Force Prediction vs. True Force')
 plt.xlabel('True Force KJ/mol/Angstrom')
 plt.ylabel('Predicted Force KJ/mol/Angstrom')
 plt.legend()

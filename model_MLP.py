@@ -69,17 +69,16 @@ def load_data(batch_size):
 
     return train_loader, val_loader, test_loader
 
-def custom_loss(output_energies, target_energies, input_coordinates, target_forces, eta_potential, eta_force):
+def custom_loss(output_energies, target_energies, 
+                input_coordinates, target_forces, 
+                eta_potential, eta_force):
     # output_energies: shape (batch_size, 1)
     # Calculate MSE for the energies
     input_coordinates.retain_grad()
     energy_loss = nn.functional.mse_loss(output_energies, target_energies)
-
-    #output_energies.sum().backward(retain_graph=True)
-    predicted_forces = -torch.autograd.grad(output_energies.sum(), input_coordinates, create_graph=True)[0]
-    #predicted_forces = -input_coordinates.grad
-    
-    # Calculate MSE for the forces
+    predicted_forces = -torch.autograd.grad(output_energies.sum(), 
+                                            input_coordinates, 
+                                            create_graph=True)[0]
     force_loss = nn.functional.mse_loss(predicted_forces, target_forces)
 
     # Combine the losses

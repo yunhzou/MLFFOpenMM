@@ -41,7 +41,7 @@ def setup_simulation(topology):
     
     # Define an integrator
     integrator = mm.VerletIntegrator(2 * unit.femtoseconds)
-    
+
     # Initialize the simulation
     simulation = app.Simulation(topology, system, integrator)
     return simulation
@@ -73,6 +73,7 @@ def calculate_potential_energy_and_forces(simulation, configuration):
     pe = state.getPotentialEnergy()
     forces = state.getForces(asNumpy=True)
     return pe, forces
+
 
 import numpy as np
 from scipy.spatial.transform import Rotation as R
